@@ -71,7 +71,7 @@ function pickedCard(event) {
 
 $(document).ready(function whenDocReady() {
   console.log("ready");
-  $.ajax("json/KLD.json", {
+  $.ajax("KLD.json", {
     success: jsonKLDLoaded,
     error: jsonLoadFail
   });
@@ -80,7 +80,7 @@ $(document).ready(function whenDocReady() {
 
 function jsonKLDLoaded(json) {
   jsonKLD = json;    
-  $.ajax("json/boosters.json", {
+  $.ajax("boosters.json", {
     success: jsonBoostersLoaded,
     error: jsonLoadFail
   });
