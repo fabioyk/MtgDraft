@@ -1,8 +1,16 @@
+var orders = {
+  CMC: 1,
+  COLOR: 2,
+  RARITY: 3,
+  TYPE: 4
+};
+
 var currentRoundBoosters = [];
 var boosterPack = [];
 var draftPick = 0;
 var currentBooster = 0;
 var draftedCards = [];
+var cardOrder = orders.CMC;
 
 /*
 
@@ -54,6 +62,16 @@ function orderPackToDraw(pack) {
   return pack;
 }
 
+function orderPickedCards() {
+  switch(cardOrder) {
+    case orders.CMC: draftedCards.sort(orderByCmc); break;
+    case orders.COLOR: draftedCards.sort(orderByColor); break;
+    case orders.RARITY: draftedCards.sort(orderByRarity); break;
+    case orders.TYPE: draftedCards.sort(orderByType); break;
+  }
+  drawPicked();
+}
+
 function pickedCard(event) {
   var pickedCardName = $(this).attr("alt");
   
@@ -66,7 +84,7 @@ function pickedCard(event) {
   console.log("Current picks: "+draftedCards);
   
   drawPack();
-  drawPicked();
+  orderPickedCards();
 }
 
 $(document).ready(function whenDocReady() {
@@ -76,6 +94,21 @@ $(document).ready(function whenDocReady() {
     error: jsonLoadFail
   });
   $(".cardsPack").on("click", ".draftImg", pickedCard);
+  $(".sort").click(function () {
+    if ($(this).prop("disabled")) {
+      $(this).prop("disabled", false);
+    } else {
+      $(".sort").prop("disabled", false),
+      $(this).prop("disabled", true);
+      switch($(this).attr("id")) {
+        case "sortCmc": cardOrder = orders.CMC; break;
+        case "sortColor": cardOrder = orders.COLOR; break;
+        case "sortRarity": cardOrder = orders.RARITY; break;
+        case "sortType": cardOrder = orders.TYPE; break;
+      }
+      orderPickedCards();
+    }
+  });
 });
 
 function jsonKLDLoaded(json) {
@@ -141,4 +174,65 @@ function fetchCard(name) {
   } else {
     console.log("!!! Failed to fetch "+name);
   }  
+}
+
+function orderByCmc(a, b) {
+  return (a.cmc !== undefined ? a.cmc : -1) - (b.cmc !== undefined ? b.cmc : -1);
+}
+function orderByColor(a, b) {
+  var args = [a.colors,b.colors], res = [];
+  for (var i=0; i<2; i++) {
+    if (args[i] === undefined) {      
+      res[i] = 0;
+    } else if (args[i].length > 1) {
+      res[i] = 6;
+    } else switch(args[i][0]) {
+      case "White": res[i] = 1; break;
+      case "Blue": res[i] = 2; break;
+      case "Black": res[i] = 3; break;
+      case "Red": res[i] = 4; break;
+      case "Green": res[i] = 5; break;
+    }    
+  }  
+  return res[0] - res[1];  
+}
+function orderByRarity(a, b) {
+  var args = [a.rarity,b.rarity], res=[];
+  for (var i=0; i<2; i++) {
+    switch(args[i]) {
+      case "Common": res[i] = 0; break;
+      case "Uncommon": res[i] = 1; break;
+      case "Rare": res[i] = 2; break;
+      case "Mythic Rare": res[i] = 3; break;
+      default: res[i] = -1;
+    }
+  }
+  return res[1] - res[0];
+}
+function orderByType(a, b) {
+  var args=[a.types,b.types], res = [];
+  for (var i=0; i<2; i++) {
+    var arr = args[i];
+    if (typeof args[i] === "string") {      
+      arr = [args[i]];
+    }
+    if (arr.indexOf("Creature") !== -1) {
+      res[i] = 0;
+    } else if (arr.indexOf("Instant") !== -1) {
+      res[i] = 1;
+    } else if (arr.indexOf("Sorcery") !== -1) {
+      res[i] = 2;
+    } else if (arr.indexOf("Enchantment") !== -1) {
+      res[i] = 3;
+    } else if (arr.indexOf("Artifact") !== -1) {
+      res[i] = 4;
+    } else if (arr.indexOf("Land") !== -1) {
+      res[i] = 7;
+    } else if (arr.indexOf("Planeswalker") !== -1) {
+      res[i] = 5;
+    } else {
+      res[i] = 6;
+    }
+  }
+  return res[0] - res[1];
 }
