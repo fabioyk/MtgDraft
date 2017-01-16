@@ -72,7 +72,8 @@ function pickedCard(event) {
 $(document).ready(function whenDocReady() {
   console.log("ready");
   $.ajax("/json/KLD.json", {
-    success: jsonKLDLoaded
+    success: jsonKLDLoaded,
+    error: jsonLoadFail
   });
   $(".cardsPack").on("click", ".draftImg", pickedCard);
 });
@@ -80,8 +81,13 @@ $(document).ready(function whenDocReady() {
 function jsonKLDLoaded(json) {
   jsonKLD = json;    
   $.ajax("/json/boosters.json", {
-    success: jsonBoostersLoaded
+    success: jsonBoostersLoaded,
+    error: jsonLoadFail
   });
+}
+  
+function jsonLoadFail(jqXHR, textStatus, errorThrown) {
+  console.log(jqXHR,textStatus,errorThrown);
 }
 
 function jsonBoostersLoaded(json) {
